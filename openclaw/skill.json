@@ -1,0 +1,42 @@
+{
+  "openclaw": {
+    "emoji": "📊",
+    "requires": {
+      "bins": ["azx"]
+    },
+    "primaryCredential": {
+      "kind": "env",
+      "env": "AZX_API_KEY",
+      "description": "AZX API key from the AZX DEX platform"
+    },
+    "optionalEnvVars": [
+      {
+        "name": "AZX_SECRET_KEY",
+        "description": "HMAC-SHA256 secret key for signing trading requests",
+        "sensitive": true
+      },
+      {
+        "name": "AZX_SANDBOX",
+        "description": "Set to 'true' to use sandbox/testnet environment",
+        "sensitive": false
+      }
+    ],
+    "homepage": "https://github.com/wjllance/azx-cli",
+    "source": {
+      "type": "github",
+      "owner": "wjllance",
+      "repo": "azx-cli",
+      "verified": true
+    },
+    "install": [
+      {
+        "id": "npm",
+        "kind": "npm",
+        "package": "azx-cli",
+        "bins": ["azx"],
+        "label": "Install AZX CLI via npm",
+        "verification": "https://github.com/wjllance/azx-cli"
+      }
+    ]
+  }
+}
