@@ -43,7 +43,7 @@ export function futuresMarketCommands(): Command {
     .command('klines')
     .description('Get futures kline data')
     .requiredOption('-s, --symbol <symbol>', 'Trading pair')
-    .requiredOption('-i, --interval <interval>', 'Kline interval')
+    .requiredOption('-i, --interval <interval>', 'Kline interval (1m,5m,15m,1h,4h,1d...)')
     .option('-l, --limit <n>', 'Number of klines', '100')
     .action(async (opts) => {
       const g = getGlobalOpts(cmd);

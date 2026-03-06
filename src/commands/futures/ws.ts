@@ -40,7 +40,7 @@ export function futuresWsCommands(): Command {
     .command('klines')
     .description('Stream futures kline updates')
     .requiredOption('-s, --symbol <symbol>', 'Trading pair')
-    .requiredOption('-i, --interval <interval>', 'Kline interval')
+    .requiredOption('-i, --interval <interval>', 'Kline interval (1m,5m,15m,1h,4h,1d...)')
     .action(async (opts) => {
       const g = getGlobalOpts(cmd);
       const ws = new FuturesWebSocket({ sandbox: g.sandbox });
