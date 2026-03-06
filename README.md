@@ -1,266 +1,99 @@
 # azx-cli
 
-Agent-First CLI for AZX DEX trading platform (Spot + Futures).
+**Give your AI agent the ability to trade on AZX DEX — in one command.**
 
-Designed for scripting and automation — all output is structured JSON by default, errors are machine-parseable, and every operation is non-interactive.
+An Agent-First CLI for AZX DEX (Spot + Futures). Structured JSON output, machine-readable errors, NDJSON WebSocket streams. Zero interaction — fully scriptable, ready for autonomous agents.
 
-## Features
-
-- **Spot & Futures trading** — market data, orders, positions, account management
-- **Structured output** — JSON (default), table, CSV, quiet
-- **stdout = data, stderr = logs** — safe to pipe and compose
-- **WebSocket streaming** — real-time market data as NDJSON
-- **Multi-profile config** — XDG-compatible, per-environment settings
-- **Sandbox support** — test against AZX sandbox with `--sandbox`
-- **Zero interaction** — fully scriptable, no prompts
-
-## Requirements
-
-- Node.js >= 20
-
-## Installation
+## Install
 
 ```bash
-# From source
-git clone <repo-url> && cd azx-cli
-npm install
-npm run build
+# via ClawHub (recommended for agents)
+clawhub install azx-cli
 
-# Run directly
-node bin/azx.js --help
-
-# Or link globally
-npm link
-azx --help
+# via npm
+npm install -g azx-cli
 ```
 
-## Quick Start
+Requires Node.js >= 20.
+
+## Setup (30 seconds)
 
 ```bash
-# 1. Initialize config
-azx config init
+# 1. Set credentials (environment variables — recommended)
+export AZX_API_KEY="your_api_key"
+export AZX_SECRET_KEY="your_secret_key"
 
-# 2. Set API credentials
-azx config set apiKey YOUR_API_KEY
-azx config set secretKey YOUR_SECRET_KEY
-
-# 3. Check connectivity
+# 2. Verify
 azx status
-
-# 4. Get spot ticker
-azx spot market ticker --symbol btc_usdt
-
-# 5. Get futures funding rate
-azx futures market funding-rate --symbol btc_usdt
 ```
 
-## Configuration
+That's it. Your agent can now trade.
 
-Config is stored at `~/.config/azx-cli/config.json` (XDG-compatible).
+> **Credential priority:** CLI flags (`--api-key`, `--secret-key`) > Environment variables > Config file
+>
+> Alternative: `azx config set apiKey KEY && azx config set secretKey SECRET`
 
-Credential priority: **CLI flags > Environment variables > Config file**
+## Why Agent-First?
 
-```bash
-# Via environment variables
-export AZX_API_KEY=your-key
-export AZX_SECRET_KEY=your-secret
+| Feature | Detail |
+|---|---|
+| **stdout = data** | All output is structured JSON by default. Logs go to stderr. Safe to pipe. |
+| **Machine-readable errors** | `{ "ok": false, "error": { "code": "AUTH_ERROR", "message": "..." } }` |
+| **Deterministic exit codes** | 0 = success, 2 = auth error, 4 = API error, 6 = validation error, etc. |
+| **No prompts, ever** | Every command is non-interactive. No confirmations, no wizards. |
+| **NDJSON streaming** | WebSocket streams output one JSON object per line — easy to process. |
+| **Sandbox mode** | Test strategies risk-free with `--sandbox`. |
 
-# Via CLI flags (per-command override)
-azx --api-key KEY --secret-key SECRET spot account balances
-
-# Via config file
-azx config set apiKey YOUR_KEY --profile default
-azx config set secretKey YOUR_SECRET --profile default
-azx config set sandbox true --profile testnet
-```
-
-### Config Commands
+## Quick Examples
 
 ```bash
-azx config init                          # Create config file
-azx config set <key> <value>             # Set a value
-azx config get <key>                     # Get a value
-azx config list                          # Show full config
-azx config list --profile production     # Show specific profile
-azx config path                          # Show config file path
-```
-
-## Global Options
-
-| Option | Description | Default |
-|---|---|---|
-| `--profile <name>` | Configuration profile | `default` |
-| `--output <format>` | Output format: `json` \| `table` \| `csv` \| `quiet` | `json` |
-| `--sandbox` | Use sandbox/testnet environment | `false` |
-| `--verbose` | Debug logging to stderr | `false` |
-| `--api-key <key>` | Override API key | — |
-| `--secret-key <key>` | Override Secret key | — |
-
-## Commands
-
-### Status
-
-```bash
-azx status                    # Check API connectivity and config
-azx status --sandbox          # Check sandbox endpoints
-```
-
-### Spot Market Data
-
-```bash
-azx spot market ticker                          # All tickers
-azx spot market ticker -s btc_usdt              # Single ticker
-azx spot market depth -s btc_usdt -l 10         # Order book (top 10)
-azx spot market klines -s btc_usdt -i 1h -l 50  # Kline/candlestick data
-azx spot market trades -s btc_usdt              # Recent trades
-```
-
-### Spot Orders
-
-```bash
-# Place orders
-azx spot order place -s btc_usdt --side BUY --type LIMIT --price 50000 --quantity 0.001
-azx spot order place -s btc_usdt --side BUY --type MARKET --quote-quantity 100
-
-# Manage orders
-azx spot order cancel -s btc_usdt --order-id 123456
-azx spot order cancel-all -s btc_usdt
-azx spot order query -s btc_usdt --order-id 123456
-azx spot order open -s btc_usdt
-azx spot order history -s btc_usdt --limit 20
-
-# Batch operations
-azx spot batch-order place --orders '[{"symbol":"btc_usdt","side":"BUY","type":"LIMIT","price":"50000","quantity":"0.001"}]'
-azx spot batch-order cancel -s btc_usdt --order-ids 111,222,333
-```
-
-### Spot Account
-
-```bash
-azx spot account balances
-azx spot account deposit-address --coin USDT
-azx spot account withdrawals --coin BTC --limit 10
-azx spot account transfer --coin USDT --amount 100 --from spot --to futures
-```
-
-### Futures Market Data
-
-```bash
-azx futures market ticker -s btc_usdt
-azx futures market depth -s btc_usdt -l 20
-azx futures market klines -s btc_usdt -i 4h
+# Market data (no auth needed)
+azx spot market ticker -s btc_usdt
 azx futures market funding-rate -s btc_usdt
-azx futures market open-interest -s btc_usdt
-```
 
-### Futures Orders
+# Place a spot order
+azx spot order place -s btc_usdt --side BUY --type MARKET --quantity 0.001
 
-```bash
-azx futures order place -s btc_usdt --side BUY --type LIMIT --price 50000 --quantity 0.1 --position-side LONG
-azx futures order place -s btc_usdt --side SELL --type MARKET --quantity 0.1 --reduce-only
-azx futures order cancel -s btc_usdt --order-id 123456
-azx futures order cancel-all -s btc_usdt
-azx futures order open
-azx futures order history --limit 50
-```
+# Open a futures long
+azx futures order place -s btc_usdt --side BUY --type LIMIT \
+  --price 50000 --quantity 0.1 --position-side LONG
 
-### Futures Conditional Orders (Entrust)
-
-```bash
-# Trigger order
-azx futures entrust trigger -s btc_usdt --side BUY --trigger-price 48000 --quantity 0.1
-
-# Take-profit / Stop-loss
-azx futures entrust tp-sl -s btc_usdt --side SELL --take-profit 55000 --stop-loss 45000
-
-# Trailing stop
-azx futures entrust trailing -s btc_usdt --side SELL --callback-rate 2 --activation-price 54000
-
-# Manage
-azx futures entrust list -s btc_usdt
-azx futures entrust cancel -s btc_usdt --entrust-id 789
-```
-
-### Futures Positions
-
-```bash
-azx futures position list
-azx futures position list -s btc_usdt
-azx futures position leverage -s btc_usdt --leverage 10
-azx futures position margin-mode -s btc_usdt --mode CROSSED
-azx futures position adjust-margin -s btc_usdt --amount 50 --type ADD --side LONG
-```
-
-### Futures Account
-
-```bash
-azx futures account balance
-azx futures account bills --limit 20
-```
-
-### WebSocket Streaming
-
-All WebSocket commands output NDJSON (one JSON object per line), ideal for piping to `jq` or other processors.
-
-```bash
-# Spot streams
-azx spot ws ticker -s btc_usdt
-azx spot ws depth -s btc_usdt
-azx spot ws klines -s btc_usdt -i 1m
-azx spot ws trades -s btc_usdt
-azx spot ws user-stream --listen-key YOUR_KEY
-
-# Futures streams
-azx futures ws ticker -s btc_usdt
-azx futures ws depth -s btc_usdt
-azx futures ws klines -s btc_usdt -i 1m
-azx futures ws user-stream --listen-key YOUR_KEY
-
-# Pipe to jq
+# Stream real-time prices (NDJSON)
 azx spot ws ticker -s btc_usdt | jq '.data.lastPrice'
 
-# Capture first 5 updates
-azx spot ws ticker -s btc_usdt | head -5
+# Check account
+azx spot account balances
+azx futures account balance
 ```
 
-## Output Formats
+## Agent Integration Pattern
 
 ```bash
-# JSON (default) — structured for agents/scripts
-azx spot market ticker -s btc_usdt --output json
+# Parse JSON output
+PRICE=$(azx spot market ticker -s btc_usdt | jq -r '.data.lastPrice')
 
-# Table — human-readable
-azx spot market ticker -s btc_usdt --output table
+# Use exit codes for control flow
+if azx status --output quiet; then
+  azx spot order place -s btc_usdt --side BUY --type MARKET --quantity 0.001
+fi
 
-# CSV — for spreadsheets/data tools
-azx spot market ticker -s btc_usdt --output csv
-
-# Quiet — no output (check exit code only)
-azx spot order place ... --output quiet && echo "Order placed"
+# Stream market data into your pipeline
+azx spot ws ticker -s btc_usdt | while read -r line; do
+  echo "$line" | jq -r '.data | "\(.symbol): \(.lastPrice)"'
+done
 ```
 
-### JSON Response Structure
+### JSON Response Format
 
-Success:
-```json
-{
-  "ok": true,
-  "data": { ... }
-}
+```jsonc
+// Success
+{ "ok": true, "data": { /* ... */ } }
+
+// Error
+{ "ok": false, "error": { "code": "VALIDATION_ERROR", "message": "..." } }
 ```
 
-Error:
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "AUTH_ERROR",
-    "message": "Missing API credentials..."
-  }
-}
-```
-
-## Exit Codes
+### Exit Codes
 
 | Code | Meaning |
 |------|---------|
@@ -274,76 +107,101 @@ Error:
 | 7 | Not found |
 | 8 | Rate limited |
 
+## Commands
+
+### Spot
+
+| Command | Description |
+|---|---|
+| `spot market ticker [-s SYMBOL]` | Price ticker (single or all) |
+| `spot market depth -s SYMBOL` | Order book |
+| `spot market klines -s SYMBOL -i INTERVAL` | Candlestick data |
+| `spot market trades -s SYMBOL` | Recent trades |
+| `spot order place -s SYMBOL --side --type ...` | Place order |
+| `spot order cancel -s SYMBOL --order-id ID` | Cancel order |
+| `spot order cancel-all -s SYMBOL` | Cancel all orders |
+| `spot order open -s SYMBOL` | List open orders |
+| `spot order history -s SYMBOL` | Order history |
+| `spot batch-order place --orders JSON` | Batch place orders |
+| `spot batch-order cancel -s SYMBOL --order-ids` | Batch cancel |
+| `spot account balances` | Account balances |
+| `spot account deposit-address --coin COIN` | Deposit address |
+| `spot account withdrawals --coin COIN` | Withdrawal history |
+| `spot account transfer --coin --amount --from --to` | Internal transfer |
+| `spot ws ticker -s SYMBOL` | Stream ticker (NDJSON) |
+| `spot ws depth -s SYMBOL` | Stream order book |
+| `spot ws klines -s SYMBOL -i INTERVAL` | Stream klines |
+| `spot ws trades -s SYMBOL` | Stream trades |
+
+### Futures
+
+| Command | Description |
+|---|---|
+| `futures market ticker [-s SYMBOL]` | Price ticker |
+| `futures market depth -s SYMBOL` | Order book |
+| `futures market klines -s SYMBOL -i INTERVAL` | Candlestick data |
+| `futures market funding-rate -s SYMBOL` | Funding rate |
+| `futures market open-interest -s SYMBOL` | Open interest |
+| `futures market mark-price [-s SYMBOL]` | Mark price |
+| `futures market index-price [-s SYMBOL]` | Index price |
+| `futures market symbols` | List trading pairs |
+| `futures market deals -s SYMBOL` | Recent trades |
+| `futures order place -s SYMBOL --side --type ...` | Place order |
+| `futures order cancel -s SYMBOL --order-id ID` | Cancel order |
+| `futures order cancel-all -s SYMBOL` | Cancel all |
+| `futures order open` | Open orders |
+| `futures order history` | Order history |
+| `futures entrust trigger -s SYMBOL ...` | Trigger order |
+| `futures entrust tp-sl -s SYMBOL ...` | Take-profit / Stop-loss |
+| `futures entrust trailing -s SYMBOL ...` | Trailing stop |
+| `futures position list [-s SYMBOL]` | List positions |
+| `futures position leverage -s SYMBOL --leverage N` | Set leverage |
+| `futures position adjust-margin -s SYMBOL ...` | Adjust margin |
+| `futures position close-all` | Close all positions |
+| `futures account balance` | Account balance |
+| `futures account bills` | Transaction bills |
+| `futures ws ticker -s SYMBOL` | Stream ticker (NDJSON) |
+| `futures ws depth -s SYMBOL` | Stream order book |
+| `futures ws klines -s SYMBOL -i INTERVAL` | Stream klines |
+
+### Config & Status
+
+| Command | Description |
+|---|---|
+| `config init` | Create config file |
+| `config set KEY VALUE` | Set config value |
+| `config get KEY` | Get config value |
+| `config list` | Show all config |
+| `config path` | Show config file path |
+| `status` | Check connectivity and auth |
+
+## Global Options
+
+| Option | Description | Default |
+|---|---|---|
+| `--profile <name>` | Configuration profile | `default` |
+| `--output <format>` | `json` \| `table` \| `csv` \| `quiet` | `json` |
+| `--sandbox` | Use sandbox/testnet environment | `false` |
+| `--verbose` | Debug logging to stderr | `false` |
+| `--api-key <key>` | Override API key | — |
+| `--secret-key <key>` | Override Secret key | — |
+
 ## API Endpoints
 
-| Environment | Spot REST | Futures REST | Spot WS | Futures WS |
-|---|---|---|---|---|
-| Production | s-api.azverse.xyz | f-api.azverse.xyz | s-ws.azverse.xyz | f-ws.azverse.xyz |
-| Sandbox | s-api.az-qa.xyz | f-api.az-qa.xyz | s-ws.az-qa.xyz | f-ws.az-qa.xyz |
-
-## Scripting Examples
-
-```bash
-# Get BTC price as plain text
-azx spot market ticker -s btc_usdt | jq -r '.data.lastPrice'
-
-# Monitor price in a loop
-while true; do
-  azx spot market ticker -s btc_usdt | jq -r '.data | "\(.symbol): \(.lastPrice)"'
-  sleep 5
-done
-
-# Place order only if status check passes
-azx status --output quiet && \
-  azx spot order place -s btc_usdt --side BUY --type MARKET --quantity 0.001
-
-# Export order history to CSV
-azx spot order history -s btc_usdt --output csv > orders.csv
-
-# Use different profiles for different environments
-azx --profile production spot account balances
-azx --profile testnet --sandbox spot account balances
-```
+| Environment | Spot | Futures |
+|---|---|---|
+| Production | `s-api.azverse.xyz` / `s-ws.azverse.xyz` | `f-api.azverse.xyz` / `f-ws.azverse.xyz` |
+| Sandbox | `s-api.az-qa.xyz` / `s-ws.az-qa.xyz` | `f-api.az-qa.xyz` / `f-ws.az-qa.xyz` |
 
 ## Development
 
 ```bash
-npm install          # Install dependencies
-npm run build        # Build with tsup
-npm run dev          # Watch mode
-npm test             # Run tests
-npm run lint         # Type check
-```
-
-## Project Structure
-
-```
-src/
-├── index.ts                 # Entry point
-├── cli.ts                   # Root command + global options
-├── commands/
-│   ├── config.cmd.ts        # azx config
-│   ├── status.cmd.ts        # azx status
-│   ├── spot/                # azx spot market/order/batch-order/account/ws
-│   └── futures/             # azx futures market/order/entrust/position/account/ws
-├── client/
-│   ├── base-client.ts       # Abstract HTTP client (signing, retry, errors)
-│   ├── spot-client.ts       # Spot REST API client
-│   └── futures-client.ts    # Futures REST API client
-├── auth/
-│   ├── signer.ts            # HMAC-SHA256 signing (Spot + Futures)
-│   └── credentials.ts       # Credential loading chain
-├── websocket/
-│   ├── base-ws.ts           # WebSocket base (reconnect, heartbeat, NDJSON)
-│   ├── spot-ws.ts           # Spot WebSocket streams
-│   └── futures-ws.ts        # Futures WebSocket streams
-├── output/
-│   └── formatter.ts         # json / table / csv / quiet
-├── config/
-│   └── config-manager.ts    # XDG-compatible config management
-├── models/                  # TypeScript type definitions
-├── error/                   # Structured error handling + exit codes
-└── utils/                   # Logger (stderr-only), retry, helpers
+git clone <repo-url> && cd azx-cli
+npm install
+npm run build
+npm link        # link globally as 'azx'
+npm run dev     # watch mode
+npm test        # run tests
 ```
 
 ## License
