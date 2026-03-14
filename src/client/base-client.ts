@@ -9,11 +9,13 @@ export abstract class BaseClient {
   protected baseUrl: string;
   protected credentials?: ApiCredentials;
   protected retryOptions: Partial<RetryOptions>;
+  protected builderCode: string;
 
-  constructor(baseUrl: string, credentials?: ApiCredentials, retryOptions?: Partial<RetryOptions>) {
+  constructor(baseUrl: string, credentials?: ApiCredentials, retryOptions?: Partial<RetryOptions>, builderCode?: string) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.credentials = credentials;
     this.retryOptions = retryOptions ?? {};
+    this.builderCode = builderCode ?? 'AZX';
   }
 
   protected abstract sign(params: {
@@ -24,7 +26,7 @@ export abstract class BaseClient {
   }): SignedHeaders;
 
   async request<T = unknown>(config: RequestConfig): Promise<T> {
-    const { method, path, query, body, signed = false } = config;
+    const { method, path, query, body, signed = false, extraHeaders } = config;
 
     // Build query string
     const filteredQuery: Record<string, string> = {};
@@ -64,6 +66,10 @@ export abstract class BaseClient {
           body: bodyStr || '',
         });
         Object.assign(headers, signedHeaders);
+      }
+
+      if (extraHeaders) {
+        Object.assign(headers, extraHeaders);
       }
 
       let response: Response;

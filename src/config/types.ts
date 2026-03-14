@@ -3,6 +3,7 @@ export interface ProfileConfig {
   secretKey?: string;
   sandbox?: boolean;
   defaultOutput?: 'json' | 'table' | 'csv' | 'quiet';
+  builderCode?: string;
 }
 
 export interface AzxConfig {

@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { SpotClient } from '../../client/spot-client.js';
-import { loadCredentials } from '../../auth/credentials.js';
+import { loadCredentials, loadBuilderCode } from '../../auth/credentials.js';
 import { outputSuccess } from '../../output/formatter.js';
 import { parseIntSafe } from '../../utils/helpers.js';
 import type { OutputFormat } from '../../output/types.js';
@@ -23,7 +23,7 @@ function makeClient(g: ReturnType<typeof getGlobalOpts>) {
     secretKey: g.secretKey,
     profile: g.profile,
   });
-  return new SpotClient({ credentials, sandbox: g.sandbox });
+  return new SpotClient({ credentials, sandbox: g.sandbox, builderCode: loadBuilderCode(g.profile) });
 }
 
 export function spotOrderCommands(): Command {
