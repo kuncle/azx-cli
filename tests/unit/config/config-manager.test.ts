@@ -93,4 +93,31 @@ describe('config-manager', () => {
       expect(profile.apiKey).toBe('testkey');
     });
   });
+
+  describe('builderCode config', () => {
+    it('should store and retrieve builderCode in profile', () => {
+      initConfig('default');
+      setProfileValue('default', 'builderCode', 'MYCODE');
+      const profile = getProfile('default');
+      expect(profile.builderCode).toBe('MYCODE');
+    });
+
+    it('should return undefined builderCode when not set', () => {
+      initConfig('default');
+      const profile = getProfile('default');
+      expect(profile.builderCode).toBeUndefined();
+    });
+
+    it('should load config with builderCode from file', () => {
+      const configPath = getConfigPath();
+      mkdirSync(join(TEST_DIR, 'azx-cli'), { recursive: true });
+      writeFileSync(configPath, JSON.stringify({
+        defaultProfile: 'default',
+        profiles: { default: { builderCode: 'FILE_CODE' } },
+      }));
+
+      const config = loadConfig();
+      expect(config.profiles.default?.builderCode).toBe('FILE_CODE');
+    });
+  });
 });

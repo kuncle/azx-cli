@@ -4,6 +4,7 @@ export interface RequestConfig {
   query?: Record<string, string | number | boolean | undefined>;
   body?: Record<string, unknown>;
   signed?: boolean;
+  extraHeaders?: Record<string, string>;
 }
 
 /** AZX API response wrapper: {rc, mc, ma, result} */

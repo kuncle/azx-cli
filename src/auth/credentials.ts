@@ -33,6 +33,13 @@ export function loadCredentials(sources: CredentialSources): ApiCredentials {
   return { apiKey, secretKey };
 }
 
+/**
+ * Load builder code with priority: env var > config file > default 'AZX'
+ */
+export function loadBuilderCode(profile?: string): string {
+  return process.env['BUILDER_CODE'] || getProfile(profile).builderCode || 'AZX';
+}
+
 /** Check if credentials are available (without throwing) */
 export function hasCredentials(sources: CredentialSources): boolean {
   try {

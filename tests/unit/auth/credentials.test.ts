@@ -1,15 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { loadCredentials, hasCredentials } from '../../../src/auth/credentials.js';
+import { loadCredentials, hasCredentials, loadBuilderCode } from '../../../src/auth/credentials.js';
 import { resetConfigCache } from '../../../src/config/config-manager.js';
 
 describe('credentials', () => {
   const origApiKey = process.env['AZX_API_KEY'];
   const origSecretKey = process.env['AZX_SECRET_KEY'];
+  const origBuilderCode = process.env['BUILDER_CODE'];
 
   beforeEach(() => {
     resetConfigCache();
     delete process.env['AZX_API_KEY'];
     delete process.env['AZX_SECRET_KEY'];
+    delete process.env['BUILDER_CODE'];
   });
 
   afterEach(() => {
@@ -17,6 +19,8 @@ describe('credentials', () => {
     else delete process.env['AZX_API_KEY'];
     if (origSecretKey !== undefined) process.env['AZX_SECRET_KEY'] = origSecretKey;
     else delete process.env['AZX_SECRET_KEY'];
+    if (origBuilderCode !== undefined) process.env['BUILDER_CODE'] = origBuilderCode;
+    else delete process.env['BUILDER_CODE'];
   });
 
   describe('loadCredentials', () => {
@@ -60,6 +64,23 @@ describe('credentials', () => {
 
     it('should return false when no credentials', () => {
       expect(hasCredentials({})).toBe(false);
+    });
+  });
+
+  describe('loadBuilderCode', () => {
+    it('should return default AZX when no env var or config', () => {
+      expect(loadBuilderCode()).toBe('AZX');
+    });
+
+    it('should return env var BUILDER_CODE when set', () => {
+      process.env['BUILDER_CODE'] = 'CUSTOM';
+      expect(loadBuilderCode()).toBe('CUSTOM');
+    });
+
+    it('should prefer env var over config', () => {
+      process.env['BUILDER_CODE'] = 'FROM_ENV';
+      // Even with a profile, env var takes priority
+      expect(loadBuilderCode('default')).toBe('FROM_ENV');
     });
   });
 });

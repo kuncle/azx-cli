@@ -13,9 +13,10 @@ export class FuturesClient extends BaseClient {
     credentials?: ApiCredentials;
     sandbox?: boolean;
     retryOptions?: Partial<RetryOptions>;
+    builderCode?: string;
   } = {}) {
     const baseUrl = options.sandbox ? FUTURES_URLS.sandbox : FUTURES_URLS.production;
-    super(baseUrl, options.credentials, options.retryOptions);
+    super(baseUrl, options.credentials, options.retryOptions, options.builderCode);
   }
 
   protected sign(params: { method: string; path: string; query?: string; body?: string }): SignedHeaders {
@@ -199,6 +200,7 @@ export class FuturesClient extends BaseClient {
       path: '/az/future/trade/v1/order/create',
       body: params,
       signed: true,
+      extraHeaders: { 'builder-code': this.builderCode },
     });
   }
 
@@ -253,6 +255,7 @@ export class FuturesClient extends BaseClient {
       path: '/az/future/trade/v2/order/create-batch',
       body: { list },
       signed: true,
+      extraHeaders: { 'builder-code': this.builderCode },
     });
   }
 

@@ -13,9 +13,10 @@ export class SpotClient extends BaseClient {
     credentials?: ApiCredentials;
     sandbox?: boolean;
     retryOptions?: Partial<RetryOptions>;
+    builderCode?: string;
   } = {}) {
     const baseUrl = options.sandbox ? SPOT_URLS.sandbox : SPOT_URLS.production;
-    super(baseUrl, options.credentials, options.retryOptions);
+    super(baseUrl, options.credentials, options.retryOptions, options.builderCode);
   }
 
   protected sign(params: { method: string; path: string; query?: string; body?: string }): SignedHeaders {
@@ -112,6 +113,7 @@ export class SpotClient extends BaseClient {
       path: '/az/spot/order',
       body: params,
       signed: true,
+      extraHeaders: { 'builder-code': this.builderCode },
     });
   }
 
@@ -184,6 +186,7 @@ export class SpotClient extends BaseClient {
       path: '/az/spot/batch-order',
       body: { items: orders },
       signed: true,
+      extraHeaders: { 'builder-code': this.builderCode },
     });
   }
 
